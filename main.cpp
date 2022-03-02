@@ -19,15 +19,15 @@ DigitalInputPin buttonBR(FEHIO::P0_0);
 #define B_LR -2.56
 #define SLOPE_F 21.8
 #define B_F -2.03
-#define POW 35.
-
+#define POW 80.
+#define SLOPE_ROT 0.00847
+#define B_ROT -0.042
 
 
 void moveDist(double, double, double);
 void rotate(int ms,double percent);
 void moveByTime(double inchX, double inchY, double percent);
-double lastTime = 0,dt = 0;
-double ax = 0,vx = 0,x = 0;
+void rotateByTime(double revolutions, double percent);
 
 int main() {
     /*
@@ -37,7 +37,8 @@ int main() {
     moveDist(7.75*PI/2.0,0,25);
     moveDist(4,4,25);
     */
-    Sleep(30.);
+
+    /*Sleep(30.);
     moveByTime(0,9.5,POW);
     rotate(180,80);
     moveByTime(0,10.5,POW);
@@ -49,7 +50,17 @@ int main() {
     moveByTime(0,9.7,-POW);
     rotate(420,-80);
     moveByTime(0,27.,POW);
-    moveByTime(0,25.,-POW);
+    moveByTime(0,25.,-POW);*/
+
+    moveByTime(0,1,POW);
+    rotateByTime(0.12,POW);
+    moveByTime(1,0,POW);
+    /*moveByTime(0,6,POW);
+    rotateByTime(0.12,POW);
+    moveByTime(0,35,POW);
+    moveByTime(0,35,POW);
+    rotateByTime(0.45,POW);
+    */
 }
 
 void rotate(int ms,double percent){
@@ -64,15 +75,14 @@ void rotate(int ms,double percent){
 
 //temporary thing to just get through the progress check
 //requires that percent is at least 20%
-//pleas no brek with negative numbers
 void moveByTime(double inchX, double inchY, double percent){
     double tx = inchX / (SLOPE_LR*abs(percent)/100.0 + B_LR);
     double ty = inchY / (SLOPE_F*abs(percent)/100.0 + B_F);
     
     //this is horrible code
     if(tx < ty){
-        driveL.SetPercent(percent);
-        driveR.SetPercent(percent);
+        driveL.SetPercent(-percent);
+        driveR.SetPercent(-percent);
         driveF.SetPercent(percent);
         Sleep(tx);
         driveF.Stop();
@@ -80,8 +90,8 @@ void moveByTime(double inchX, double inchY, double percent){
         driveL.Stop();
         driveR.Stop();
     }else{
-        driveL.SetPercent(percent); 
-        driveR.SetPercent(percent);
+        driveL.SetPercent(-percent); 
+        driveR.SetPercent(-percent);
         driveF.SetPercent(percent);
         Sleep(ty);
         driveL.Stop();
@@ -89,10 +99,21 @@ void moveByTime(double inchX, double inchY, double percent){
         Sleep(tx-ty);
         driveF.Stop();
     }
-    
+}
 
-
-    
+//temporary thing to just get through the progress check
+//requires that percent is at least 20%
+void rotateByTime(double revolutions, double percent){
+    double sec = revolutions / (SLOPE_ROT*abs(percent) + B_ROT);
+    if(sec>0){
+        driveL.SetPercent(-percent);
+        driveR.SetPercent(percent);
+        driveF.SetPercent(percent);
+        Sleep(sec);
+        driveF.Stop();
+        driveL.Stop();
+        driveR.Stop();
+    }
     
 }
 
