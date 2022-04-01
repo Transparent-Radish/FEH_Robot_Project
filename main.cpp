@@ -37,8 +37,7 @@ FEHServo frontArm(FEHServo::Servo0);
 #define RED_THRESHOLD 1.5
 #define RPS_DELAY 0.35
 #define H_RANGE 5
-#define ROTATION_CORRECTION_FACTOR 1
-//0.91
+#define ROTATION_CORRECTION_FACTOR 0.91
 #define ARM_MIN 1000
 #define ARM_MAX 1800
 
@@ -46,21 +45,17 @@ void moveDist(double, double, double);
 void rotate(int ms,double percent);
 void moveByTime(double inchX, double inchY, double percent);
 void rotateByTime(double revolutions, double percent);
-void burgerFlip(double inchX,double inchY,double wheelPercent, double armPercent, int armTime);
+void burgerFlip(double inchX,double inchY,double wheelPercent);
 void goToLocation(double xNew,double yNew,double headingNew,double power,char*);
 int iceCreamFlavor;
 double x,y,heading;
 void moveForwardUntilBump(double percent);
 void generateLocationValues(double* x, double* y, double* heading);
+void goToLocation2(double xNew,double yNew,double headingNew,double power,char* name);
 int main() {
     
-
+    /*
     RPS.InitializeTouchMenu();
-    /*while(true){
-        Sleep(100);
-        LCD.Clear();
-        LCD.WriteLine(RPS.Heading());
-    }*/
 
     double locationCoords[3][3];
     char* places[] = {"RAMPBOT.txt", "RAMPTOP.txt", "SINK.txt"};
@@ -85,14 +80,19 @@ int main() {
 
     double startTime = TimeNow();
     while(cds.Value()>RED_THRESHOLD && TimeNow() - startTime < 28.0){}
+    moveByTime(0,10,POW);
+    rotateByTime(45,POW);
+    moveByTime(0,40,90);
+    
     x = RPS.X();
     y = RPS.Y();
     heading = RPS.Heading();
+    
     //move the damn robot
     for(int i=0;i<3;i++){
-        goToLocation(locationCoords[i][0],locationCoords[i][1],locationCoords[i][2], POW,places[i]);
+        goToLocation2(locationCoords[i][0],locationCoords[i][1],locationCoords[i][2], POW,places[i]);
     }
-
+    */
 
 
     
@@ -102,13 +102,28 @@ int main() {
     //heading = RPS.Heading();
     //Sleep(RPS_DELAY);
 
-    /*frontArm.SetMin(ARM_MIN);
+frontArm.SetMin(ARM_MIN);
+    frontArm.SetMax(ARM_MAX);
+    
+    frontArm.SetDegree(0);
+    RPS.InitializeTouchMenu();
+
+    LCD.WriteLine("FINAL ACTION");
+    float a,b;
+    //wait until the user touches the screen and releases
+    LCD.ClearBuffer();
+    while(!LCD.Touch(&a,&b)){}
+    while(LCD.Touch(&a,&b)){}
+    LCD.WriteLine("INITIATED");
+
+
+    frontArm.SetMin(ARM_MIN);
     frontArm.SetMax(ARM_MAX);
     frontArm.SetDegree(0);
     
-    RPS.InitializeTouchMenu();
-    while(cds.Value()>RED_THRESHOLD){}
-    iceCreamFlavor = RPS.GetIceCream();
+    double startTime = TimeNow();
+    while(cds.Value()>RED_THRESHOLD && TimeNow() - startTime < 28.0){}
+    iceCreamFlavor = 1;//RPS.GetIceCream();
 
     //go to front of ramp
     //goToLocation(13,23,0, POW_SLOW);
@@ -124,7 +139,7 @@ int main() {
     moveByTime(0,10,POW);
     rotateByTime(45,POW);
     moveByTime(0,40,90);
-    moveByTime(2,0,-POW);
+    moveByTime(6,0,-POW);
     moveForwardUntilBump(POW_SLOW);
     moveByTime(0,7,-POW_SLOW);
     rotateByTime(40,-POW);
@@ -163,11 +178,11 @@ int main() {
         break;
     }    
     moveForwardUntilBump(POW_SLOW);
-    moveByTime(15,0,-POW);
+    moveByTime(18,0,-POW);
     moveByTime(0,20,POW);
     rotateByTime(50,-POW);
-    moveByTime(0,50,POW);\
-    */
+    moveByTime(0,50,POW);
+    
     /*while(true){
         x = RPS.X();
         y = RPS.Y();
@@ -201,37 +216,66 @@ int main() {
     moveByTime(0,27.,POW);
     moveByTime(0,25.,-POW);*/
 
-    /*
+/*
+    frontArm.SetMin(ARM_MIN);
+    frontArm.SetMax(ARM_MAX);
     
+    frontArm.SetDegree(0);
+    RPS.InitializeTouchMenu();
+
+    LCD.WriteLine("FINAL ACTION");
+    float a,b;
+    //wait until the user touches the screen and releases
+    LCD.ClearBuffer();
+    while(!LCD.Touch(&a,&b)){}
+    while(LCD.Touch(&a,&b)){}
+
     //wait for light to turn on
-    while(cds.Value()>RED_THRESHOLD){}
+
+    double startTime = TimeNow();
+    while(cds.Value()>RED_THRESHOLD && TimeNow() - startTime < 28.0){}
 
     //align robot towards ramp and move up
-    moveByTime(0,11,POW);
-    rotateByTime(0.115,POW);
-    moveByTime(0,40,POW);
+    moveByTime(0,10,POW);
+    rotateByTime(45,POW);
+    moveByTime(0,50,POW);
 
     //align robot with sink and deposit tray
-    rotateByTime(0.5,-POW_BEFORE_SINK);
-    moveByTime(20,0,POW_BEFORE_SINK);
-    moveByTime(0,7,POW_BEFORE_SINK);
-    arm.SetPercent(60);
+    rotateByTime(180,POW_SLOW);
+    moveByTime(18,0,POW_SLOW);
+    moveForwardUntilBump(POW_SLOW);
+    /*arm.SetPercent(60);
     Sleep(1500);
     arm.SetPercent(-60);
     Sleep(1500);
     arm.Stop();
-    moveByTime(5,0,-POW_BEFORE_SINK);
-    moveByTime(0,5,-POW_BEFORE_SINK);
-    rotateByTime(0.25,-POW_BEFORE_SINK);   
-    moveByTime(0,22.5,POW_BEFORE_SINK);
-    rotateByTime(0.25,-POW_BEFORE_SINK);
-    moveByTime(0,23,-POW_BEFORE_SINK);
-    moveByTime(7,0,-POW_BEFORE_SINK);
-    moveByTime(0,22,POW_BEFORE_SINK);
-    moveByTime(0,24,-POW_BEFORE_SINK);
-    moveByTime(7,0,-POW_BEFORE_SINK);
-    moveByTime(0,24,POW_BEFORE_SINK);
+    */
+    /*
+    frontArm.SetDegree(180);
+    Sleep(2000);
+    frontArm.SetDegree(0);
+
+    //go to the burger station
+    moveByTime(18,8,-POW);
+    rotateByTime(180,POW);
+    moveByTime(10,10,POW);
+    moveForwardUntilBump(POW);
+    moveByTime(10,5,-POW);
+    frontArm.SetDegree(180);
+    moveByTime(5,0,POW);
+    burgerFlip(10,5,POW_SLOW);
+
+    //line up with burger station and move to ticket
+    moveForwardUntilBump(POW_SLOW);
+    moveByTime(5,0,POW);
+    arm.SetPercent(60);
+    Sleep(1500);
+    moveByTime(0,18,-POW);
+    moveByTime(15,0,-POW);
+
 */
+    
+
 /*while(cds.Value()>RED_THRESHOLD){}
     moveByTime(0,11,POW);
     rotateByTime(0.115,POW);
@@ -274,7 +318,8 @@ void rotate(int ms,double percent){
 void moveForwardUntilBump(double percent){
     driveL.SetPercent(percent);
     driveR.SetPercent(-percent);
-    while(buttonL.Value()||buttonR.Value()){}
+    double startTime = TimeNow();
+    while((buttonL.Value()||buttonR.Value()) && TimeNow() - startTime < 15.0){}
     driveL.Stop();
     driveR.Stop();
 }
@@ -284,21 +329,31 @@ void moveForwardUntilBump(double percent){
 void moveByTime(double inchX, double inchY, double percent){
     double tx = inchX / (SLOPE_LR*abs(percent)/100.0 + B_LR);
     double ty = inchY / (SLOPE_F*abs(percent)/100.0 + B_F);
-    
+    int xSign = 1, ySign = 1;
+    if(inchX < 0){
+        xSign = -1;
+        inchX *= -1;
+    }
+    if(inchY < 0){
+        ySign = -1;
+        inchY *= -1;
+    }
+        
+
     //this is horrible code
     if(ty > tx){
-        driveL.SetPercent(percent);
-        driveR.SetPercent(-percent);
-        driveF.SetPercent(percent);
+        driveL.SetPercent(ySign*percent);
+        driveR.SetPercent(-ySign*percent);
+        driveF.SetPercent(xSign*percent);
         Sleep(tx);
         driveF.Stop();
         Sleep(ty-tx);
         driveL.Stop();
         driveR.Stop();
     }else{
-        driveL.SetPercent(percent); 
-        driveR.SetPercent(-percent);
-        driveF.SetPercent(percent);
+        driveL.SetPercent(ySign*percent);
+        driveR.SetPercent(-ySign*percent);
+        driveF.SetPercent(xSign*percent);
         Sleep(ty);
         driveL.Stop();
         driveR.Stop();
@@ -307,61 +362,58 @@ void moveByTime(double inchX, double inchY, double percent){
     }
 }
 
-void burgerFlip(double inchX,double inchY,double wheelPercent, double armPercent, int armTime){
+void burgerFlip(double inchX,double inchY,double wheelPercent){
 
     
-        driveR.SetPercent(-25);
 
-    //move arm up
-    arm.SetPercent(-armPercent);
-    Sleep(armTime);
-    arm.Stop();
+    //lower arm
+    frontArm.SetDegree(90);
+
     //move to the right
-        driveR.SetPercent(-25);
-
     moveByTime(inchX,0,wheelPercent);
 
     //move back    
-    driveR.SetPercent(-25);
-
     moveByTime(0,inchY,-wheelPercent);
 
     //move further to the right
-        driveR.SetPercent(-25);
-
     moveByTime(inchX/2.0,0,wheelPercent);
 
     //move forward
-        driveR.SetPercent(-25);
-
     moveByTime(0,inchY,wheelPercent);
 
     //move left
-        driveR.SetPercent(-25);
-
     moveByTime(1.5*inchX,0,-wheelPercent);
 
-    //lower arm
-    arm.SetPercent(armPercent);
-    Sleep(armTime);
-    arm.Stop();
+    //raise arm
+    frontArm.SetDegree(0);
 }
 
 //temporary thing to just get through the progress check
 //requires that percent is at least 20%
 void rotateByTime(double degrees, double percent){
-    double revolutions = ROTATION_CORRECTION_FACTOR*degrees/360.0;
+    double revolutions = abs(ROTATION_CORRECTION_FACTOR*degrees/360.0);
     double sec = revolutions / (SLOPE_ROT*abs(percent) + B_ROT);
+
     if(sec>0){
-        driveL.SetPercent(-percent);
-        driveR.SetPercent(-percent);
-        driveF.SetPercent(-percent);
-        Sleep(sec);
-        driveF.Stop();
-        driveL.Stop();
-        driveR.Stop();
+        if(degrees > 0){
+            driveL.SetPercent(-percent);
+            driveR.SetPercent(-percent);
+            driveF.SetPercent(-percent);
+            Sleep(sec);
+            driveF.Stop();
+            driveL.Stop();
+            driveR.Stop();
+        }
+        else{
+            driveL.SetPercent(percent);
+            driveR.SetPercent(percent);
+            driveF.SetPercent(percent);
+            Sleep(sec);
+            driveF.Stop();
+            driveL.Stop();
+            driveR.Stop();
+        }   
     }
-    
 }
 
 void moveDist(double inchL, double inchR,double percent){
@@ -405,23 +457,121 @@ void generateLocationValues(double* x, double* y, double* heading){
     *x = RPS.X();
     *y = RPS.Y();
     *heading = RPS.Heading();
+
+    //if it didn't read correctly, try again
+    while(*x < 0){
+        *x = RPS.X();
+    }
+    while(*y < 0){
+        *y = RPS.Y();
+    }
+    while(*heading < 0){
+        *heading = RPS.Heading();
+    }
+}
+
+void goToLocation2(double xNew,double yNew,double headingNew,double power,char* name){
+    FEHFile *testLog = SD.FOpen(name,"w");
+    Sleep(RPS_DELAY);
+
+    //update position values
+    if(RPS.X() >= -1.1)
+        x = RPS.X();
+
+    if(RPS.Y() >= -1.1)
+        y = RPS.Y();
+     
+    if(RPS.Heading() >= -1.1)
+        heading = RPS.Heading();
+
+
+    while(x > -2 && x < 0){
+        x = RPS.X();
+    }
+    while(y > -2 && y < 0){
+        y = RPS.Y();
+    }
+    while(heading > -2 && heading < 0){
+        heading = RPS.Heading();
+    }
+    SD.FPrintf(testLog,"Moving from (%f,%f,%f) to (%f,%f,%f).\n",x,y,heading,xNew,yNew,headingNew);
+
+    Sleep(RPS_DELAY);
+
+    xNew -= x;
+    yNew -= y;
+    double theta = heading*PI/180.0;
+    double X = xNew*cos(theta)+yNew*sin(theta);
+    double Y = -xNew*sin(theta)+yNew*cos(theta);
+
+
+    if(RPS.Heading() >= -1.1)
+        heading = RPS.Heading();
+    else
+        heading += headingNew;
+
+    while(RPS.Heading() > -2 && RPS.Heading() < 0){
+        heading = RPS.Heading();
+    }    
+    headingNew -= heading;
+
+    SD.FPrintf(testLog,"rotating from %f to %f via a rotation of %f\n",heading,headingNew+heading,headingNew);
+    rotateByTime(headingNew,power);
+
+    
+    
+    SD.FPrintf(testLog,"With the current heading of %f, the robot will move by (%f,%f)\n",heading,X,Y);
+    moveByTime(X,0,power);
+    moveByTime(0,Y,power);
+    
+    Sleep(RPS_DELAY);
+
+    if(RPS.X() >= -1.1)
+        x = RPS.X();
+    else
+        x=xNew;
+
+    if(RPS.Y() >= -1.1)
+        y = RPS.Y();
+    else
+        y=yNew;
+     
+    
+    SD.FPrintf(testLog,"tried to rotate %f degrees, heading is %f\n",headingNew,heading);
+
+    //update position values
+    while(RPS.X() > -2 && RPS.X() < 0){
+        x = RPS.X();
+    }
+    while(RPS.Y() > -2 && RPS.Y() < 0){
+        y = RPS.Y();
+    }
+    SD.FPrintf(testLog,"Current position is (%f,%f,%f)\n",x,y,heading);
+
+
 }
 
 void goToLocation(double xNew,double yNew,double headingNew,double power,char* name){
     
     FEHFile *testLog = SD.FOpen(name,"w");
     //update position values
-    if(RPS.X() >= 0)
+    while(RPS.X() > -2 && RPS.X() < 0){
         x = RPS.X();
-    if(RPS.Y() >= 0)
+    }
+    while(RPS.Y() > -2 && RPS.Y() < 0){
         y = RPS.Y();
-    if(RPS.Heading() >= 0)
+    }
+    while(RPS.Heading() > -2 && RPS.Heading() < 0){
         heading = RPS.Heading();
+    }
 
     Sleep(RPS_DELAY);
 
     //calculate angle and distance needed to go from current RPS point to specified point
-    double tempHeading = (180.0*atan2(yNew-y,xNew-x)/PI)%360;
+    double tempHeading = 180.0*atan2(yNew-y,xNew-x)/PI;
+    if(tempHeading < 0){
+        tempHeading+=360;
+    }
     double dist = sqrt((xNew-x)*(xNew-x) + (yNew-y)*(yNew-y));
 
     SD.FPrintf(testLog,"Moving from (%f,%f,%f) to (%f,%f,%f).\n",x,y,heading,xNew,yNew,headingNew);
@@ -440,8 +590,9 @@ void goToLocation(double xNew,double yNew,double headingNew,double power,char* n
     moveByTime(0,dist,power);
     
 
-    if(RPS.Heading() >= 0)
+    while(RPS.Heading() > -2 && RPS.Heading() < 0){
         heading = RPS.Heading();
+    }
     Sleep(RPS_DELAY);
     //rotate so that the robot's heading matches the needed heading
         SD.FPrintf(testLog,"rotating from %f to %f\n",heading,headingNew);
@@ -452,20 +603,30 @@ void goToLocation(double xNew,double yNew,double headingNew,double power,char* n
     else
         rotateByTime(heading - headingNew,power);
     //update position values
-    if(RPS.X() >= 0)
+    if(RPS.X() >= -1.1)
         x = RPS.X();
     else
         x=xNew;
 
-    if(RPS.Y() >= 0)
+    if(RPS.Y() >= -1.1)
         y = RPS.Y();
     else
         y=yNew;
      
-    if(RPS.Heading() >= 0)
+    if(RPS.Heading() >= -1.1)
         heading = RPS.Heading();
     else
         heading=headingNew;
+
+    while(RPS.X() > -2 && RPS.X() < 0){
+        x = RPS.X();
+    }
+    while(RPS.Y() > -2 && RPS.Y() < 0){
+        y = RPS.Y();
+    }
+    while(RPS.Heading() > -2 && RPS.Heading() < 0){
+        heading = RPS.Heading();
+    }
 
     Sleep(RPS_DELAY);
     SD.FPrintf(testLog,"New position is (%f,%f,%f)\n",x,y,heading);
