@@ -6,7 +6,7 @@
 #include <FEHSD.h>
 #include <stdlib.h>
 #include <math.h>
-#include <cstring>
+#include <string.h>
 
 FEHMotor driveR(FEHMotor::Motor1,7.2);
 FEHMotor driveL(FEHMotor::Motor2,7.2);
@@ -35,9 +35,9 @@ FEHServo frontArm(FEHServo::Servo0);
 #define SLOPE_ROT 0.00847
 #define B_ROT -0.042
 #define RED_THRESHOLD 1.5
-#define RPS_DELAY 0.35
+#define RPS_DELAY 0.8
 #define H_RANGE 5
-#define ROTATION_CORRECTION_FACTOR 0.91
+#define ROTATION_CORRECTION_FACTOR 0.93
 #define ARM_MIN 1000
 #define ARM_MAX 1800
 
@@ -52,12 +52,16 @@ double x,y,heading;
 void moveForwardUntilBump(double percent);
 void generateLocationValues(double* x, double* y, double* heading);
 void goToLocation2(double xNew,double yNew,double headingNew,double power,char* name);
+void recordTheDarnLocationsInRPS();
 int main() {
-    
-    /*
+
+
+
     RPS.InitializeTouchMenu();
 
-    double locationCoords[3][3];
+    recordTheDarnLocationsInRPS();
+
+    /*double locationCoords[3][3];
     char* places[] = {"RAMPBOT.txt", "RAMPTOP.txt", "SINK.txt"};
 
     //get rps coords of different places
@@ -66,6 +70,7 @@ int main() {
         LCD.WriteLine(places[i]);
         generateLocationValues(&locationCoords[i][0],&locationCoords[i][1],&locationCoords[i][2]);
     }
+    */
     LCD.Clear();
     LCD.WriteLine("FINAL ACTION");
     float a,b;
@@ -81,7 +86,7 @@ int main() {
     double startTime = TimeNow();
     while(cds.Value()>RED_THRESHOLD && TimeNow() - startTime < 28.0){}
     moveByTime(0,10,POW);
-    rotateByTime(45,POW);
+    rotateByTime(-45,POW);
     moveByTime(0,40,90);
     
     x = RPS.X();
@@ -90,9 +95,9 @@ int main() {
     
     //move the damn robot
     for(int i=0;i<3;i++){
-        goToLocation2(locationCoords[i][0],locationCoords[i][1],locationCoords[i][2], POW,places[i]);
+        //goToLocation2(locationCoords[i][0],locationCoords[i][1],locationCoords[i][2], POW,places[i]);
     }
-    */
+    
 
 
     
@@ -102,7 +107,7 @@ int main() {
     //heading = RPS.Heading();
     //Sleep(RPS_DELAY);
 
-frontArm.SetMin(ARM_MIN);
+    /*frontArm.SetMin(ARM_MIN);
     frontArm.SetMax(ARM_MAX);
     
     frontArm.SetDegree(0);
@@ -139,7 +144,7 @@ frontArm.SetMin(ARM_MIN);
     moveByTime(0,10,POW);
     rotateByTime(45,POW);
     moveByTime(0,40,90);
-    moveByTime(6,0,-POW);
+    moveByTime(5,0,-POW);
     moveForwardUntilBump(POW_SLOW);
     moveByTime(0,7,-POW_SLOW);
     rotateByTime(40,-POW);
@@ -160,10 +165,10 @@ frontArm.SetMin(ARM_MIN);
     Sleep(5.0);
     frontArm.SetDegree(150);
     Sleep(2.0);
-    moveByTime(0,6,POW_SLOW);
-    frontArm.SetDegree(75);
+    moveByTime(0,7,POW_SLOW);
+    frontArm.SetDegree(65);
 
-    moveByTime(0,6,-POW);
+    moveByTime(0,7,-POW);
     frontArm.SetDegree(0);
     rotateByTime(135,-POW);
     switch(iceCreamFlavor){
@@ -178,11 +183,12 @@ frontArm.SetMin(ARM_MIN);
         break;
     }    
     moveForwardUntilBump(POW_SLOW);
-    moveByTime(18,0,-POW);
+    moveByTime(16,0,-POW);
     moveByTime(0,20,POW);
     rotateByTime(50,-POW);
     moveByTime(0,50,POW);
-    
+    */
+
     /*while(true){
         x = RPS.X();
         y = RPS.Y();
@@ -332,17 +338,17 @@ void moveByTime(double inchX, double inchY, double percent){
     int xSign = 1, ySign = 1;
     if(inchX < 0){
         xSign = -1;
-        inchX *= -1;
+        tx *= -1;
     }
     if(inchY < 0){
         ySign = -1;
-        inchY *= -1;
+        ty *= -1;
     }
         
 
     //this is horrible code
     if(ty > tx){
-        driveL.SetPercent(ySign*percent);
+        /*driveL.SetPercent(ySign*percent);
         driveR.SetPercent(-ySign*percent);
         driveF.SetPercent(xSign*percent);
         Sleep(tx);
@@ -350,8 +356,18 @@ void moveByTime(double inchX, double inchY, double percent){
         Sleep(ty-tx);
         driveL.Stop();
         driveR.Stop();
-    }else{
+        */
         driveL.SetPercent(ySign*percent);
+        driveR.SetPercent(-ySign*percent);
+        Sleep(ty-tx);
+        driveF.SetPercent(xSign*percent);
+        Sleep(tx);
+        driveL.Stop();
+        driveR.Stop();
+        driveF.Stop();
+
+    }else{
+        /*driveL.SetPercent(ySign*percent);
         driveR.SetPercent(-ySign*percent);
         driveF.SetPercent(xSign*percent);
         Sleep(ty);
@@ -359,7 +375,36 @@ void moveByTime(double inchX, double inchY, double percent){
         driveR.Stop();
         Sleep(tx-ty);
         driveF.Stop();
+        */
+        driveF.SetPercent(xSign*percent);
+        Sleep(tx-ty);
+        driveL.SetPercent(ySign*percent);
+        driveR.SetPercent(-ySign*percent);
+        Sleep(tx);
+        driveF.Stop();
+        driveL.Stop();
+        driveR.Stop();
+
+
     }
+}
+
+void recordTheDarnLocationsInRPS(){
+    char* places[] = {"jukeBoxBlue", "jukeBoxRed", "sink","sinkRotate","burger","burgerRotate","ticket","ticketRotate","rampExitTop","endButton"};
+    double X,Y,H;
+    FEHFile *cheetos = SD.FOpen("LOC.txt","w");
+    if(!cheetos){
+        LCD.WriteLine("sa;lfjha;ovrna;oernbv;lkeanrv;ouear");
+    }
+    //get rps coords of different places
+    for(int i=0;i<11;i++){
+        LCD.Clear();
+        LCD.WriteLine(places[i]);
+        generateLocationValues(&X,&Y,&H);
+        SD.FPrintf(cheetos,"%s\n%f,%f,%f\n",places[i],X,Y,H);
+        Sleep(500);
+    }
+    SD.FClose(cheetos);
 }
 
 void burgerFlip(double inchX,double inchY,double wheelPercent){
@@ -396,18 +441,18 @@ void rotateByTime(double degrees, double percent){
 
     if(sec>0){
         if(degrees > 0){
-            driveL.SetPercent(-percent);
-            driveR.SetPercent(-percent);
-            driveF.SetPercent(-percent);
+            driveL.SetPercent(percent);
+            driveR.SetPercent(percent);
+            driveF.SetPercent(percent);
             Sleep(sec);
             driveF.Stop();
             driveL.Stop();
             driveR.Stop();
         }
         else{
-            driveL.SetPercent(percent);
-            driveR.SetPercent(percent);
-            driveF.SetPercent(percent);
+            driveL.SetPercent(-percent);
+            driveR.SetPercent(-percent);
+            driveF.SetPercent(-percent);
             Sleep(sec);
             driveF.Stop();
             driveL.Stop();
@@ -497,32 +542,38 @@ void goToLocation2(double xNew,double yNew,double headingNew,double power,char* 
     SD.FPrintf(testLog,"Moving from (%f,%f,%f) to (%f,%f,%f).\n",x,y,heading,xNew,yNew,headingNew);
 
     Sleep(RPS_DELAY);
-
-    xNew -= x;
-    yNew -= y;
-    double theta = heading*PI/180.0;
-    double X = xNew*cos(theta)+yNew*sin(theta);
-    double Y = -xNew*sin(theta)+yNew*cos(theta);
-
-
+    
     if(RPS.Heading() >= -1.1)
         heading = RPS.Heading();
-    else
-        heading += headingNew;
 
     while(RPS.Heading() > -2 && RPS.Heading() < 0){
         heading = RPS.Heading();
     }    
-    headingNew -= heading;
-
-    SD.FPrintf(testLog,"rotating from %f to %f via a rotation of %f\n",heading,headingNew+heading,headingNew);
-    rotateByTime(headingNew,power);
 
     
+
+
     
+
+    SD.FPrintf(testLog,"rotating from %f to %f via a rotation of %f\n",heading,headingNew,headingNew-heading);
+    rotateByTime(headingNew-heading,power);
+    Sleep(RPS_DELAY);
+    
+    if(RPS.Heading() >= -1.1)
+        heading = RPS.Heading();
+    else
+        heading = headingNew;
+    while(RPS.Heading() > -2 && RPS.Heading() < 0){
+        heading = RPS.Heading();
+    }    
+    
+    double theta = heading*PI/180.0;
+    double X = (xNew-x)*sin(theta)-(yNew-y)*cos(theta);
+    double Y = (xNew-x)*cos(theta)+(yNew-y)*sin(theta);
+
     SD.FPrintf(testLog,"With the current heading of %f, the robot will move by (%f,%f)\n",heading,X,Y);
-    moveByTime(X,0,power);
-    moveByTime(0,Y,power);
+    SD.FPrintf(testLog,"Which would result in the current change of coordinates (%f,%f)\n",X*sin(theta)-Y*cos(theta),X*cos(theta)+Y*sin(theta));
+    moveByTime(X,Y,power);
     
     Sleep(RPS_DELAY);
 
@@ -535,9 +586,11 @@ void goToLocation2(double xNew,double yNew,double headingNew,double power,char* 
         y = RPS.Y();
     else
         y=yNew;
-     
-    
-    SD.FPrintf(testLog,"tried to rotate %f degrees, heading is %f\n",headingNew,heading);
+
+    if(RPS.Heading() >= -1.1)
+        heading = RPS.Heading();
+    else
+        heading = headingNew;
 
     //update position values
     while(RPS.X() > -2 && RPS.X() < 0){
@@ -546,8 +599,12 @@ void goToLocation2(double xNew,double yNew,double headingNew,double power,char* 
     while(RPS.Y() > -2 && RPS.Y() < 0){
         y = RPS.Y();
     }
+    while(RPS.Heading() > -2 && RPS.Heading() < 0){
+        heading = RPS.Heading();
+    }   
     SD.FPrintf(testLog,"Current position is (%f,%f,%f)\n",x,y,heading);
 
+    SD.FClose(testLog);
 
 }
 
